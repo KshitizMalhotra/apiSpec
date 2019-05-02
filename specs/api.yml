@@ -1,0 +1,176 @@
+openapi: 3.0.0
+
+info:
+  title: Flight Reservation Management 
+  description: An API that makes the neccessary reseravations for the passenger in a flight. 
+  version: 1.0.0
+servers:
+  - url: http://api.example.com/v1
+    description: Optional server description, e.g. Main (production) server
+paths:
+
+  # Slightly changed from the submitted ActionQuery(group asgn.). As per professors comments on the submission and our discussion about this after the class,
+  # Since reservations can be made for multiple people, there must be a way to associate a passenger under a reservation 
+  # to a seat number. So I changed the url and the input in order to make it compatible with the overall API design.
+  /reservations/{reservation_id}/passengers/{user_id}/flight_seats:
+    post:
+      summary: Add a seat number to the reservation
+      description: |
+        Reserves the selected seat number per passenger.  
+      parameters:
+        - name: reservation_id
+          description: reservation id issued to a passenger after initiating a reservation. This passenger can make multiple reservations
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 577B4ADB-FCB6-43A5-845B-918A952CB9B4
+
+        - name: user_id
+          description: a unique passenger in a reservation members 
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 14DAFFD0-7E0F-4B28-B7EF-19C6EF45704A
+          
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  reservation_id: 
+                    description: reservation id issued to a passenger after initiating a reservation. This passenger can make multiple reservations
+                    type: string
+                    example: 0a41c6e5-5ae9-4412-ac5c-fc4cc13e2d6c
+                  user_id:
+                    description: a unique passenger in a reservation members
+                    type: string
+                    example: 6a05e510-12ae-4721-a7af-2e4259d24809
+                  flight_id:
+                    description: an airplane's(of a specefic airline) identifier  
+                    type: string
+                    example: a40ea1f4-b2f0-4904-9a3c-85c27efeca92
+                  seat_number:
+                    description: the seat codes on the airplane
+                    type: string 
+                    example: 3A
+            example: [
+              {
+                reservation_id: 59DAFFD0-7E0F-4e28-B7EF-19R4ty5704A,
+                user_id: QMsbe2Xb-ywAc-7E0F-5e28-B7EF-2NmXp8D0,
+                flight_id: 4d8ce5c42-073c7-e9ca4aeff-d3d157102,
+                seat_number: 13C
+              }  
+            ]
+
+      responses:
+        '200':
+          description: |
+            Returns success status and the seat_id associated to the number
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  seat_id:
+                    type: string
+                    items:
+                      type: string
+                    example: "12106650-4e49-47td-b93a-0b69a7217497"
+        '500': 
+          description: |
+            Returns detailed error explanation in case Flight Reservation Management cannot get 
+            the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+        '400':
+          description: |
+            Returns detailed error explanation in case Flight Reservation Management cannot get 
+            the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+
+
+  # I'm adding a separate path since flight seats have not relation to the reservation 
+  #  done or to be done by the passengers.           
+  /flights/{flight_id}/flight_seats:              
+    get: 
+      summary: View available flight seats 
+      description: |
+        Gets the available seat plan of a flight number
+      parameters:
+        - name: flight_id
+          description: an airplane's (of a specefic airline's) identifier  
+          in: path
+          required: true
+          schema:
+            type: string
+          example:  qrs567xtr-dlkjl67b76-4nk4c32yuh-qzg8876jmd
+
+      responses:
+        '200':
+          description: Successfull pull of the seat codes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties: 
+                    reserved_seats: 
+                      description: An Array of Seat Info objects for reserved seats
+                      type: object
+                    unreserved_seats:
+                      description: An Array of Seat Info objects for un-reserved seats
+                      type: object 
+                # examples syntax: https://swagger.io/docs/specification/2-0/adding-examples/                    
+                example:
+                  - unreserved_seats: {
+                      "seat_id": "a1d45369e-aefb-4ac5c-af36fge6gj6f1d60",
+                      "column_number": "G",
+                      "row_number": "35",
+                      "seat_number": "35G",
+                  }
+                    reserved_seats: {
+                      "seat_id": "5f0bbczxrg3-f199-4238-91f5-dfhb8jvui5",
+                      "column_number": "A",
+                      "row_number": "1",
+                      "seat_number": "1A",
+                  }
+                  - unreserved_seats: {
+                      "seat_id": "7dc55d58-2f60-4971-a1a0-51593a47e7e3",
+                      "column_number": "C",
+                      "row_number": "5",
+                      "seat_number": "5C",
+                  }
+                    reserved_seats: {
+                      "seat_id": "29210b1e-d3cf-4f33-9601-2d0ed4887c5c",
+                      "column_number": "F",
+                      "row_number": "7",
+                      "seat_number": "7F",
+                  }
+                  
+components:
+  schemas:
+    ErrorObject:
+      type: object
+      properties:
+        errorId:
+          type: integer
+        description:
+          type: string
+        details:
+          type: string
+      example:
+        errorId: 5451
+        description: "Could not connect to database"
+        details: "Please contact customer-service number"

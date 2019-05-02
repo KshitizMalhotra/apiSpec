@@ -1,0 +1,14 @@
+version: "3.4"
+
+services:
+  seat-reserve:
+    container_name: seat-reserve
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/apiSpec
+    ports:
+      - 8080:8080
+
+# Do not have db for storing logs yet....
